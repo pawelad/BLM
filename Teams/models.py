@@ -1,7 +1,8 @@
 from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
-from datetime import datetime
+from django.core.exceptions import ValidationError
+from datetime import date
 
 
 class Coach(models.Model):
@@ -16,10 +17,17 @@ class Coach(models.Model):
                                                  last_name=self.last_name)
 
     def __str__(self):
-        """Example: Phil Jackson (Chicago Bulls)"""
-        return '{first_name} {last_name} ({team})'.format(first_name=self.first_name,
-                                                          last_name=self.last_name,
-                                                          team=self.team.full_name)
+        """Example: Phil Jackson (Chicago Bulls) / Phil Jackson"""
+        try:
+            return '{first_name} {last_name} ({team})'.format(first_name=self.first_name,
+                                                              last_name=self.last_name,
+                                                              team=self.team.full_name)
+        except Team.DoesNotExist:
+            return self.full_name
+
+    def clean(self):
+        if self.birth_date >= date.today():
+            raise ValidationError({'birth_date': "Coach can't be born in the future."})
 
 
 class Team(models.Model):
@@ -28,6 +36,11 @@ class Team(models.Model):
     logo = models.ImageField(default='team_logos/default.png', upload_to='team_logos')
     description = models.TextField(max_length=1024, blank=True, default='')
     coach = models.OneToOneField(Coach)
+    captain = models.ForeignKey('Players.Player', blank=True, null=True, related_name='team_captain',
+                                on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ['full_name']
 
     @cached_property
     def count_players(self):
@@ -35,13 +48,7 @@ class Team(models.Model):
         from Players.models import Player
 
         return Player.objects.filter(team=self).count()
-
-    @cached_property
-    def captain(self):
-        """Returns the captain of the team"""
-        from Players.models import Player
-
-        return Player.objects.get(Q(team=self), Q(is_captain=True))
+    count_players.short_description = 'Number of players'
 
     def team_players(self):
         """Returns the list of players in the team"""
@@ -53,8 +60,17 @@ class Team(models.Model):
 
         return team_players
 
+    def games_played(self):
+        """Returns the number of games the team played"""
+        from Games.models import TeamBoxscore
+
+        today = date.today()
+
+        return TeamBoxscore.objects.filter(team=self).filter(game__date__lte=today).count()
+
     def team_average_leader(self, stat):
         # TODO: Poprawić z sortowaniem po stronie bazy (.extra)
+        # TODO: Wiele graczy może mieć tą samą średnią
         # https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.query.QuerySet.extra
         """Returns the player (and value) with best average in given statistic"""
         from Players.models import Player
@@ -74,15 +90,16 @@ class Team(models.Model):
         """Creates a list of `n` previous (if `n` is negative) or next (if `n` is positive) games of a team."""
         from Games.models import Game
 
-        today = datetime.today().date()
+        t = date.today()
         games_list = list()
-
-        if n > 0:
-            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__gte=today).order_by('date')[:n]
-        elif n < 0:
-            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__lt=today).order_by('-date')[:-n]
+        if n < 0:
+            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__lt=t).order_by(
+                '-date')[:-n]
+        elif n > 0:
+            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__gte=t).order_by(
+                'date')[:n]
         else:
-            raise Exception('Argument can\'t be 0')
+            raise Exception("Argument can't be 0")
 
         for game in games:
             games_list.append(game)
@@ -96,5 +113,10 @@ class Team(models.Model):
 
     def __str__(self):
         """Example: Chicago Bulls (CHI)"""
-        return '{full_name} ({short_name})'.format(full_name=self.full_name,
-                                                   short_name=self.short_name)
+        return '{full_name} ({short_name})'.format(full_name=self.full_name, short_name=self.short_name)
+
+    def clean(self):
+        if self.captain_id is not None and self.captain.team != self:
+            raise ValidationError({'captain': "Team captain has to be in the team."})
+
+        self.short_name = self.short_name.upper()
