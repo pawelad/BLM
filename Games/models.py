@@ -55,8 +55,8 @@ class Game(models.Model):
         from django.core.urlresolvers import reverse
 
         return reverse('game:game_page', args=[self.date.strftime("%Y-%m-%d"),
-                                          self.away_team.short_name,
-                                          self.home_team.short_name])
+                                               self.away_team.short_name,
+                                               self.home_team.short_name])
 
     def __str__(self):
         """Example: Chicago Bulls at New York Knicks (01.01.2000)"""
@@ -207,7 +207,7 @@ class TeamBoxscore(models.Model):
         team_box = [str(n) + ' players', '240']
 
         for item in stat_fields[1:]:
-                team_box.append(getattr(self, item))
+            team_box.append(getattr(self, item))
 
         return team_box
 

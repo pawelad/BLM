@@ -9,3 +9,4 @@ pylint:
     - missing-super-argument
     - old-style-class
     - too-many-locals
+    - model-missing-unicode
