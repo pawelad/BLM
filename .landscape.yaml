@@ -1,0 +1,11 @@
+strictness: medium
+autodetect: true
+uses:
+    - django
+requirements:
+    - requirements.txt
+pylint:
+  disable:
+    - missing-super-argument
+    - old-style-class
+    - too-many-locals

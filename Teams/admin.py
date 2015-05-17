@@ -13,7 +13,7 @@ class CoachAdmin(admin.ModelAdmin):
 
 class PlayersFormSet(BaseInlineFormSet):
     def clean(self):
-        super(BaseInlineFormSet, self).clean()
+        super().clean()
 
         # Catch unique_together = ('team', 'number',) and show as ValidationError
         numbers = list()

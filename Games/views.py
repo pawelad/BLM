@@ -1,10 +1,11 @@
+from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 import json
 
-from Games.models import *
-from Teams.models import *
+from Players.models import Player
+from Teams.models import Team
+from Games.models import Game, PeriodScore, TeamBoxscore
 
 
 def game_index(request):

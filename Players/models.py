@@ -109,11 +109,10 @@ class Player(models.Model):
                 t = PlayerBoxscore.objects.filter(player=self).aggregate(total=Sum(stat))['total']
                 return t if t is not None else 0
         except ZeroDivisionError:
-                return 0
+            return 0
 
     def cat_average(self, stat):
         """Returns per game average of given statistic, rounded to one decimal place"""
-        from Games.models import PlayerBoxscore
 
         # No such thing as average percentage
         if stat in ['fg_perc', 'three_perc', 'ft_perc']:

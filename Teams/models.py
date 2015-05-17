@@ -106,8 +106,8 @@ class Team(models.Model):
         return TeamBoxscore.objects.filter(team=self).filter(game__date__lte=today).count()
 
     def team_average_leader(self, stat):
-        # TODO: Poprawić z sortowaniem po stronie bazy (.extra)
-        # TODO: Wiele graczy może mieć tą samą średnią
+        # TODO: Sort on base level (.extra)
+        # TODO: Multiple players can have the same average
         # https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.query.QuerySet.extra
         """Returns the player (and value) with best average in given statistic"""
         from Players.models import Player

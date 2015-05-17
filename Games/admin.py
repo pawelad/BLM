@@ -10,7 +10,7 @@ from Players.models import Player
 
 class PeriodScoresFormSet(BaseInlineFormSet):
     def clean(self):
-        super(BaseInlineFormSet, self).clean()
+        super().clean()
 
         # Hack to compare it with sum of points form PlayerBoxscores
         global ps_score
@@ -48,7 +48,7 @@ class PeriodScoresInline(admin.TabularInline):
 
 class PlayerBoxscoresFormSet(BaseInlineFormSet):
     def clean(self):
-        super(BaseInlineFormSet, self).clean()
+        super().clean()
 
         total_starters = 0
         total_minutes = 0
