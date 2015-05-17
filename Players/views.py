@@ -1,6 +1,4 @@
-from django.http import Http404
-from django.shortcuts import render
-from django.db.models import Q
+from django.shortcuts import get_object_or_404, render
 
 from Teams import models as teamModels
 from Players.models import Player
@@ -25,10 +23,7 @@ def player_index(request):
 def player_page(request, player_fullname):
     first, last = player_fullname.split("_")
 
-    try:
-        player = Player.objects.get(Q(first_name=first.title()), Q(last_name=last.title()))
-    except Player.DoesNotExist:
-        raise Http404
+    player = get_object_or_404(Player, first_name=first, last_name=last)
 
     boxscore_fields = [
         ['MIN', 'PTS', 'FGM', 'FGA', 'FG%', '3PM', '3PA', '3P%', 'FTM', 'FTA', 'FT%',

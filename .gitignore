@@ -1,5 +1,7 @@
-# Własne
+# Mine
 db.sqlite3
+TODO
+local_settings.py
 .idea/
 
 # Byte-compiled / optimized / DLL files

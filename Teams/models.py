@@ -6,9 +6,19 @@ from datetime import date
 
 
 class Coach(models.Model):
-    first_name = models.CharField(max_length=64)
-    last_name = models.CharField(max_length=64)
-    birth_date = models.DateField()
+    first_name = models.CharField(
+        verbose_name='First name',
+        max_length=64,
+    )
+
+    last_name = models.CharField(
+        verbose_name='Last name',
+        max_length=64,
+    )
+
+    birth_date = models.DateField(
+        verbose_name='Birth date',
+    )
 
     @cached_property
     def full_name(self):
@@ -31,13 +41,40 @@ class Coach(models.Model):
 
 
 class Team(models.Model):
-    full_name = models.CharField(max_length=64)
-    short_name = models.CharField(max_length=5)
-    logo = models.ImageField(default='team_logos/default.png', upload_to='team_logos')
-    description = models.TextField(max_length=1024, blank=True, default='')
-    coach = models.OneToOneField(Coach)
-    captain = models.ForeignKey('Players.Player', blank=True, null=True, related_name='team_captain',
-                                on_delete=models.SET_NULL)
+    full_name = models.CharField(
+        verbose_name='Name',
+        max_length=64,
+    )
+
+    short_name = models.CharField(
+        verbose_name='Short name',
+        max_length=5,
+    )
+
+    logo = models.ImageField(
+        verbose_name='Logo',
+        default='team_logos/default.png',
+        upload_to='team_logos',
+    )
+
+    description = models.TextField(
+        verbose_name='Description',
+        max_length=1024,
+        blank=True,
+        default='',
+    )
+
+    coach = models.OneToOneField(
+        'Teams.Coach', related_name='team',
+        verbose_name='Coach',
+    )
+
+    captain = models.ForeignKey(
+        'Players.Player', related_name='team_captain',
+        verbose_name='Captain',
+        blank=True, null=True,
+        on_delete=models.SET_NULL
+    )
 
     class Meta:
         ordering = ['full_name']
@@ -109,7 +146,7 @@ class Team(models.Model):
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
 
-        return reverse('team_page', args=[str(self.full_name.replace(' ', '_'))])
+        return reverse('team:team_page', args=[str(self.full_name.replace(' ', '_'))])
 
     def __str__(self):
         """Example: Chicago Bulls (CHI)"""

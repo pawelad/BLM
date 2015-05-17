@@ -1,15 +1,11 @@
-from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from collections import OrderedDict
 
 from Teams.models import Team
 
 
 def team_page(request, team_name):
-    try:
-        team = Team.objects.get(full_name=team_name.replace("_", " ").title)
-    except Team.DoesNotExist:
-        raise Http404
+    team = get_object_or_404(Team, full_name=team_name.replace("_", " ").title)
 
     team_players = team.team_players()
 

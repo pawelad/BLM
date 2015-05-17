@@ -5,8 +5,6 @@ from django.core.exceptions import ValidationError
 from datetime import date
 from collections import OrderedDict
 
-from Teams.models import Team
-
 
 class Player(models.Model):
     position_choices = (
@@ -21,16 +19,49 @@ class Player(models.Model):
         ('C', 'Center'),
     )
 
-    first_name = models.CharField(max_length=64)
-    last_name = models.CharField(max_length=64)
-    team = models.ForeignKey(Team)
-    position = models.CharField(max_length=5, choices=position_choices)
-    number = models.PositiveSmallIntegerField()
-    birth_date = models.DateField()
-    height = models.PositiveSmallIntegerField(verbose_name='Height [cm]')
-    weight = models.PositiveSmallIntegerField(verbose_name='Weight [kg]')
-    image = models.ImageField(verbose_name='Player photo', default='player_photos/default.jpg',
-                              upload_to='player_photos')
+    first_name = models.CharField(
+        verbose_name='First name',
+        max_length=64,
+    )
+
+    last_name = models.CharField(
+        verbose_name='Last name',
+        max_length=64,
+    )
+
+    team = models.ForeignKey(
+        'Teams.Team', related_name='player',
+        verbose_name='Team',
+    )
+
+    position = models.CharField(
+        verbose_name='Position',
+        max_length=5,
+        choices=position_choices,
+    )
+
+    number = models.PositiveSmallIntegerField(
+        verbose_name='Number',
+
+    )
+
+    birth_date = models.DateField(
+        verbose_name='Birth date',
+    )
+
+    height = models.PositiveSmallIntegerField(
+        verbose_name='Height [cm]',
+    )
+
+    weight = models.PositiveSmallIntegerField(
+        verbose_name='Weight [kg]',
+    )
+
+    image = models.ImageField(
+        verbose_name='Player photo',
+        default='player_photos/default.jpg',
+        upload_to='player_photos',
+    )
 
     class Meta:
         ordering = ['last_name', 'first_name']
@@ -39,7 +70,8 @@ class Player(models.Model):
     @cached_property
     def full_name(self):
         """Example: Michael Jordan"""
-        return '{first_name} {last_name}'.format(first_name=self.first_name, last_name=self.last_name)
+        return '{first_name} {last_name}'.format(first_name=self.first_name,
+                                                 last_name=self.last_name)
 
     @cached_property
     def age(self):
@@ -117,7 +149,7 @@ class Player(models.Model):
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
 
-        return reverse('player_page', args=[str(self.first_name) + '_' + str(self.last_name)])
+        return reverse('player:player_page', args=[str(self.first_name) + '_' + str(self.last_name)])
 
     def __str__(self):
         """Example: Michael Jordan (Chicago Bulls)"""
@@ -129,7 +161,7 @@ class Player(models.Model):
         if self.birth_date >= date.today():
             raise ValidationError({'birth_date': "Player can't be born in the future."})
 
-        if self.number not in range(100):
+        if self.number > 99:
             raise ValidationError({'number': "Players number must be between 0 and 99."})
 
         if self.pk is not None:
@@ -137,7 +169,7 @@ class Player(models.Model):
             if Player.objects.filter(team=org.team).count() == 5 and self.team != org.team:
                 raise ValidationError({'team': "The team has to have at least 5 players."})
 
-            # If captain changes teams, orginal team has no captain
+            # If captain changes teams, original team has no captain
             if self == org.team.captain and self.team != org.team:
                 org.team.captain = None
                 org.team.save()

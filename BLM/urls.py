@@ -5,16 +5,18 @@ from BLM import settings
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', TemplateView.as_view(template_name='index.html'), name='home'),
-    url(r'^player/', include('Players.urls')),
-    url(r'^team/', include('Teams.urls')),
-    url(r'^game/', include('Games.urls')),
+    url(r'^player/', include('Players.urls', namespace='player')),
+    url(r'^team/', include('Teams.urls', namespace='team')),
+    url(r'^game/', include('Games.urls', namespace='game')),
 )
 
 if settings.DEBUG:
-    urlpatterns += patterns('',
+    urlpatterns += patterns(
+        '',
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
             'document_root': settings.MEDIA_ROOT,
         }),

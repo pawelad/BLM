@@ -20,11 +20,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '-)&l&rqf!o&z2ej#ed^jya6p!eur5h*gr!lv16-!aqw9mb+bw^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+]
 
 
 # Application definition
@@ -111,3 +114,8 @@ STATIC_PATH = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = (
     STATIC_PATH,
 )
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

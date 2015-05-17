@@ -2,9 +2,10 @@ from django.conf.urls import patterns, url
 
 from Players import views
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     # ex: /player/
-    url(r'^$', views.player_index, name='player_index'),
+    url(r'^$', views.player_index, name='index'),
     # ex: /player/Michael_Jordan/
     url(r'^(?P<player_fullname>\w+)/$', views.player_page, name='player_page'),
 )

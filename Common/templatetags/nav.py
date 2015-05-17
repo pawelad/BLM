@@ -6,12 +6,12 @@ from Teams.models import Team
 register = template.Library()
 
 
-@register.inclusion_tag('nav.html', takes_context=True)
+@register.inclusion_tag('partials/nav.html', takes_context=True)
 def nav(context):
     links = [{'name': 'Home', 'url': reverse('home')},
-             {'name': 'Teams', 'url': '/team/'},
-             {'name': 'Players', 'url': reverse('player_index')},
-             {'name': 'Games', 'url': reverse('game_index')}]
+             {'name': 'Teams', 'url': reverse('team:index')},
+             {'name': 'Players', 'url': reverse('player:index')},
+             {'name': 'Games', 'url': reverse('game:index')}]
 
     all_teams = list()
     for team in Team.objects.all():
