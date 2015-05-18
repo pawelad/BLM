@@ -99,11 +99,9 @@ class Team(models.Model):
 
     def games_played(self):
         """Returns the number of games the team played"""
-        from Games.models import TeamBoxscore
+        from Games.models import Game
 
-        today = date.today()
-
-        return TeamBoxscore.objects.filter(team=self).filter(game__date__lte=today).count()
+        return Game.objects.team(self).happened().count()
 
     def team_average_leader(self, stat):
         # TODO: Sort on base level (.extra)
@@ -141,12 +139,6 @@ class Team(models.Model):
 
         return games_list
 
-    def number_of_games(self):
-        """Returns the number of games played by the team"""
-        from Games.models import Game
-
-        return Game.objects.team(self).count()
-
     def wins_loses(self, t, place='all'):
         """Returns the number of Team wins/loses (or record), with place of the game as second parameter"""
         from Games.models import Game
@@ -155,21 +147,16 @@ class Team(models.Model):
             raise Exception("First parameter must be 'wins', 'loses' or 'record'")
 
         if place == 'all':
-            games_list = Game.objects.team(self)
+            games_list = Game.objects.happened().team(self)
         elif place == 'home':
-            games_list = Game.objects.filter(home_team=self)
+            games_list = Game.objects.happened().filter(home_team=self)
         elif place == 'away':
-            games_list = Game.objects.filter(away_team=self)
+            games_list = Game.objects.happened().filter(away_team=self)
         else:
             raise Exception("Second parameter must be 'home' or 'away'")
 
-        wins = 0
-        loses = 0
-        for game in games_list:
-            if game.winner == self:
-                wins += 1
-            else:
-                loses += 1
+        wins = games_list.filter(winner=self).count()
+        loses = games_list.exclude(winner=self).count()
 
         if t == 'record':
             return '{wins} - {loses}'.format(wins=wins, loses=loses)

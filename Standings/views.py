@@ -10,7 +10,7 @@ def standings_index(request):
 
     percentage_list = dict()
     for team in teams_list:
-        percentage_list[team] = team.wins_loses('wins') / team.number_of_games()
+        percentage_list[team] = team.wins_loses('wins') / team.games_played()
 
     # Sort team winning percentages
     percentage_list = OrderedDict(sorted(percentage_list.items(), key=itemgetter(1), reverse=True))

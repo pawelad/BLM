@@ -10,20 +10,36 @@ class GameQuerySet(models.QuerySet):
     def team(self, team):
         return self.filter(Q(home_team=team) | Q(away_team=team))
 
+    def happened(self):
+        return self.filter(happened=True)
+
 
 class Game(models.Model):
     away_team = models.ForeignKey(
-        'Teams.Team', related_name='away_team',
+        'Teams.Team', related_name='away_game',
         verbose_name='Away team',
     )
 
     home_team = models.ForeignKey(
-        'Teams.Team', related_name='home_team',
+        'Teams.Team', related_name='home_game',
         verbose_name='Home team'
     )
 
     date = models.DateField(
         verbose_name='Date',
+    )
+
+    happened = models.BooleanField(
+        verbose_name='Did the game happened?',
+        default=False,
+        editable=False,
+    )
+
+    winner = models.ForeignKey(
+        'Teams.Team', related_name='game_winner',
+        verbose_name='Winner',
+        null=True, blank=True,
+        editable=False,
     )
 
     objects = GameQuerySet.as_manager()
@@ -32,37 +48,20 @@ class Game(models.Model):
         ordering = ['date']
         unique_together = ('away_team', 'home_team', 'date',)
 
-    def happened(self):
-        """Returns True if the game happened, False otherwise"""
-        if TeamBoxscore.objects.filter(game=self).count() == 0:
-            return False
-        else:
-            s = self.final_score
-            if self.date <= date.today() and (s['away_team'] != 0 or s['home_team'] != 0):
-                return True
-            else:
-                return False
-    happened.boolean = True
-
     @cached_property
     def final_score(self):
         """Returns a dict with teams final score"""
-        final_score = {'home_team': TeamBoxscore.objects.get(Q(game=self), Q(team=self.home_team)).pts,
-                       'away_team': TeamBoxscore.objects.get(Q(game=self), Q(team=self.away_team)).pts}
-        return final_score
-
-    @cached_property
-    def winner(self):
-        """Returns the team that won; None if game hadn't happened yet"""
-        if self.happened():
-            return self.home_team if self.final_score['home_team'] > self.final_score['away_team'] else self.away_team
+        if self.happened:
+            final_score = {'home_team': TeamBoxscore.objects.get(Q(game=self), Q(team=self.home_team)).pts,
+                           'away_team': TeamBoxscore.objects.get(Q(game=self), Q(team=self.away_team)).pts}
+            return final_score
         else:
             return None
 
     @cached_property
     def overtime(self):
         """Returns number of overtimes, 0 if none and None if game hadn't happened yet."""
-        return PeriodScore.objects.filter(game=self).count() - 4 if self.happened() else None
+        return PeriodScore.objects.filter(game=self).count() - 4 if self.happened else None
 
     @cached_property
     def short_name(self):
@@ -92,13 +91,20 @@ class Game(models.Model):
             raise ValidationError("Game has wrong number of TeamBoxscores.")
 
 
+class PlayerBoxscoreQuerySet(models.QuerySet):
+    def game(self, game):
+        return self.filter(game=game)
+
+    def team(self, team):
+        return self.filter(player__team=team)
+
+
 class PlayerBoxscore(models.Model):
     player = models.ForeignKey(
         'Players.Player', related_name='player_boxscore',
         verbose_name='Player',
     )
 
-    team = models.ForeignKey('Teams.Team')  # Should be deleted
     game = models.ForeignKey(
         'Games.Game', related_name='player_boxscore',
         verbose_name='Game',
@@ -129,6 +135,8 @@ class PlayerBoxscore(models.Model):
     fta = models.PositiveIntegerField(verbose_name='FTA', default=0)
     ft_perc = models.TextField(verbose_name='FT%', default=0, editable=False)
     pf = models.PositiveIntegerField(verbose_name='PF', default=0)
+
+    objects = PlayerBoxscoreQuerySet.as_manager()
 
     class Meta:
         unique_together = ('player', 'game',)
@@ -200,9 +208,10 @@ class TeamBoxscore(models.Model):
         Returns the player (and value) with team high value of given statistic in a game.
         If there's more then one player, it returns the number of players (and value).
         """
-        player_box = PlayerBoxscore.objects.filter(game=self.game).filter(team=self.team).order_by('-' + stat)[0]
+        team_player_boxs = PlayerBoxscore.objects.game(self.game).team(self.team)
+        player_box = team_player_boxs.order_by('-' + stat)[0]
         value = getattr(player_box, stat)
-        n = PlayerBoxscore.objects.filter(game=self.game).filter(team=self.team).filter(**{stat: value}).count()
+        n = team_player_boxs.filter(**{stat: value}).count()
 
         if n > 1:
             return str(n) + ' players', value
@@ -222,8 +231,7 @@ class TeamBoxscore(models.Model):
             players_boxscores[Michael Jordan] = [29, 34, 11, 24, 0.460, 4, 13, 0.310, 8, 9, 0.890, 5, 3, 8, 5, 0, 5]
         """
         players_boxscores = OrderedDict()
-        for player_box in PlayerBoxscore.objects.filter(game=self.game).filter(team=self.team).order_by('-is_starter',
-                                                                                                        '-min'):
+        for player_box in PlayerBoxscore.objects.game(self.game).team(self.team).order_by('-is_starter', '-min'):
             player = player_box.player
             players_boxscores[player] = list()
 
@@ -242,7 +250,7 @@ class TeamBoxscore(models.Model):
                      'ftm', 'fta', 'ft_perc', 'reb_off', 'reb_def', 'reb_all', 'ast', 'stl', 'blk', 'ba', 'to', 'pf']
             [10 players, 240, 198, 70, 181, 0.387, 28, 75, 0.373, 30, 50, 0.600, 25, 63, 88, 57, 18, 32, 24, 42, 27]
         """
-        n = PlayerBoxscore.objects.filter(game=self.game).filter(team=self.team).filter(min__gt=0).count()
+        n = PlayerBoxscore.objects.game(self.game).team(self.team).filter(min__gt=0).count()
         # TODO: Zmienna minut w kwarcie
         team_box = [str(n) + ' players', '240']
 
@@ -264,7 +272,8 @@ class TeamBoxscore(models.Model):
         s = PlayerBoxscore.objects.filter(game=self.game).filter(team=self.team).aggregate(
             reb_def=Sum('reb_def'), reb_off=Sum('reb_off'), ast=Sum('ast'), stl=Sum('stl'), blk=Sum('blk'),
             ba=Sum('ba'), fgm=Sum('fgm'), fga=Sum('fga'), three_pm=Sum('three_pm'), three_pa=Sum('three_pa'),
-            ftm=Sum('ftm'), fta=Sum('fta'), pf=Sum('pf'))
+            ftm=Sum('ftm'), fta=Sum('fta'), pf=Sum('pf')
+        )
 
         self.reb_def = s['reb_def']
         self.reb_off = s['reb_off']
@@ -286,14 +295,37 @@ class TeamBoxscore(models.Model):
         self.three_perc = '{0:.3f}'.format(self.three_pm / self.three_pa) if self.three_pa > 0 else '-'
         self.ft_perc = '{0:.3f}'.format(self.ftm / self.fta) if self.fta > 0 else '-'
 
+        if TeamBoxscore.objects.filter(game=self.game) == 2:
+            self.game.happened = True
+
+            if (TeamBoxscore.objects.get(game=self.game, team=self.game.home_team).pts >
+                    TeamBoxscore.objects.get(game=self.game, team=self.game.away_team).pts):
+                self.game.winner = self.game.home_team
+            else:
+                self.game.winner = self.game.away_team
+
         super(TeamBoxscore, self).save(*args, **kwargs)
 
 
 class PeriodScore(models.Model):
-    game = models.ForeignKey(Game)
-    quarter = models.PositiveIntegerField()
-    away_team = models.PositiveIntegerField(default=0)
-    home_team = models.PositiveIntegerField(default=0)
+    game = models.ForeignKey(
+        'Games.Game', related_name='period_score',
+        verbose_name='Period score',
+    )
+
+    quarter = models.PositiveIntegerField(
+        verbose_name='Quarter',
+    )
+
+    away_team = models.PositiveIntegerField(
+        verbose_name='Away team score',
+        default=0,
+    )
+
+    home_team = models.PositiveIntegerField(
+        verbose_name='Home team score',
+        default=0,
+    )
 
     class Meta:
         ordering = ['game', 'quarter']
