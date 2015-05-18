@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+
+{% block page_content %}
+
+<div class="container">
+    <div class="bs-docs-section">
+        <div class="row page-header">
+            <div class="col-lg-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Standings</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Wins</th>
+                                <th>Loses</th>
+                                <th>Percentage</th>
+                                <th>Games back</th>
+                                <th>Home</th>
+                                <th>Away</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for key, value in standings_list.items %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ key.get_absolute_url }}">
+                                            {{ value.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ value.wins }}</td>
+                                    <td>{{ value.loses }}</td>
+                                    <td>{{ value.percentage }}</td>
+                                    <td>{{ value.gb }}</td>
+                                    <td>{{ value.home }}</td>
+                                    <td>{{ value.away }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

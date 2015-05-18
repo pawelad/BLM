@@ -47,7 +47,9 @@ INSTALLED_APPS = (
     'Players',
     'Teams',
     'Games',
+    'Standings',
 
+    'debug_toolbar',
 )
 
 MIDDLEWARE_CLASSES = (

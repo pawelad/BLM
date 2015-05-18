@@ -20,7 +20,7 @@ def game_page(request, game_date, away_team_short, home_team_short):
     except (Team.DoesNotExist, Game.DoesNotExist):
         raise Http404
 
-    if game.happened:
+    if game.happened():
         period_score = list()
         for item in PeriodScore.objects.filter(game=game):
             period_score.append({'quarter': item.quarter,

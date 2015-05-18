@@ -50,8 +50,6 @@ class PlayerBoxscoresFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
 
-        # Hack to compare it with sum of points form PlayerBoxscores
-        global ps_score
         total_starters = 0
         total_minutes = 0
         bx_score = 0

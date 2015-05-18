@@ -12,6 +12,7 @@ urlpatterns = patterns(
     url(r'^player/', include('Players.urls', namespace='player')),
     url(r'^team/', include('Teams.urls', namespace='team')),
     url(r'^game/', include('Games.urls', namespace='game')),
+    url(r'^standings/', include('Standings.urls', namespace='standings')),
 )
 
 if settings.DEBUG:

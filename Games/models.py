@@ -5,23 +5,43 @@ from django.core.exceptions import ValidationError
 from datetime import date
 from collections import OrderedDict
 
-from Players.models import Player
-from Teams.models import Team
+
+class GameQuerySet(models.QuerySet):
+    def team(self, team):
+        return self.filter(Q(home_team=team) | Q(away_team=team))
 
 
 class Game(models.Model):
-    away_team = models.ForeignKey(Team, related_name='away_team')
-    home_team = models.ForeignKey(Team, related_name='home_team')
-    date = models.DateField()
+    away_team = models.ForeignKey(
+        'Teams.Team', related_name='away_team',
+        verbose_name='Away team',
+    )
+
+    home_team = models.ForeignKey(
+        'Teams.Team', related_name='home_team',
+        verbose_name='Home team'
+    )
+
+    date = models.DateField(
+        verbose_name='Date',
+    )
+
+    objects = GameQuerySet.as_manager()
 
     class Meta:
         ordering = ['date']
         unique_together = ('away_team', 'home_team', 'date',)
 
     def happened(self):
-        """Returns True if the game happened"""
-        s = self.final_score
-        return True if self.date <= date.today() and (s['away_team'] != 0 or s['home_team'] != 0) else False
+        """Returns True if the game happened, False otherwise"""
+        if TeamBoxscore.objects.filter(game=self).count() == 0:
+            return False
+        else:
+            s = self.final_score
+            if self.date <= date.today() and (s['away_team'] != 0 or s['home_team'] != 0):
+                return True
+            else:
+                return False
     happened.boolean = True
 
     @cached_property
@@ -73,10 +93,22 @@ class Game(models.Model):
 
 
 class PlayerBoxscore(models.Model):
-    player = models.ForeignKey(Player)
-    team = models.ForeignKey(Team)  # Should be deleted
-    game = models.ForeignKey(Game)
-    is_starter = models.BooleanField(default=False)
+    player = models.ForeignKey(
+        'Players.Player', related_name='player_boxscore',
+        verbose_name='Player',
+    )
+
+    team = models.ForeignKey('Teams.Team')  # Should be deleted
+    game = models.ForeignKey(
+        'Games.Game', related_name='player_boxscore',
+        verbose_name='Game',
+    )
+
+    is_starter = models.BooleanField(
+        verbose_name='Is starter?',
+        default=False,
+    )
+
     min = models.PositiveIntegerField(verbose_name='MIN', default=0)
     pts = models.PositiveIntegerField(verbose_name='PTS', default=0, editable=False)
     reb_def = models.PositiveIntegerField(verbose_name='DEF', default=0)
@@ -130,8 +162,16 @@ class PlayerBoxscore(models.Model):
 
 
 class TeamBoxscore(models.Model):
-    team = models.ForeignKey(Team)
-    game = models.ForeignKey(Game)
+    team = models.ForeignKey(
+        'Teams.Team', related_name='team_boxscore',
+        verbose_name='Team boxscore',
+    )
+
+    game = models.ForeignKey(
+        'Games.Game', related_name='Game',
+        verbose_name='Game',
+    )
+
     pts = models.PositiveIntegerField(default=0, editable=False)
     reb_def = models.PositiveIntegerField(default=0, editable=False)
     reb_off = models.PositiveIntegerField(default=0, editable=False)

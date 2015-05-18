@@ -130,11 +130,9 @@ class Team(models.Model):
         t = date.today()
         games_list = list()
         if n < 0:
-            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__lt=t).order_by(
-                '-date')[:-n]
+            games = Game.objects.team(self).filter(date__lt=t).order_by('-date')[:-n]
         elif n > 0:
-            games = Game.objects.filter(Q(home_team=self) | Q(away_team=self)).filter(date__gte=t).order_by(
-                'date')[:n]
+            games = Game.objects.team(self).filter(date__gte=t).order_by('date')[:n]
         else:
             raise Exception("Argument can't be 0")
 
@@ -142,6 +140,46 @@ class Team(models.Model):
             games_list.append(game)
 
         return games_list
+
+    def number_of_games(self):
+        """Returns the number of games played by the team"""
+        from Games.models import Game
+
+        return Game.objects.team(self).count()
+
+    def wins_loses(self, t, place='all'):
+        """Returns the number of Team wins/loses (or record), with place of the game as second parameter"""
+        from Games.models import Game
+
+        if t not in ['wins', 'loses', 'record']:
+            raise Exception("First parameter must be 'wins', 'loses' or 'record'")
+
+        if place == 'all':
+            games_list = Game.objects.team(self)
+        elif place == 'home':
+            games_list = Game.objects.filter(home_team=self)
+        elif place == 'away':
+            games_list = Game.objects.filter(away_team=self)
+        else:
+            raise Exception("Second parameter must be 'home' or 'away'")
+
+        wins = 0
+        loses = 0
+        for game in games_list:
+            if game.winner == self:
+                wins += 1
+            else:
+                loses += 1
+
+        if t == 'record':
+            return '{wins} - {loses}'.format(wins=wins, loses=loses)
+        else:
+            return wins if t == 'wins' else loses
+
+    def games_back(self, best_team):
+        """Returns number of games back to given team"""
+        return ((best_team.wins_loses('wins') - self.wins_loses('wins')) +
+                (self.wins_loses('loses') - best_team.wins_loses('loses'))) / 2
 
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
