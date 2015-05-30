@@ -1,8 +1,10 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.utils.functional import cached_property
 from django.core.exceptions import ValidationError
 from datetime import date
+
+from Games.models import PlayerBoxscore
 
 
 class Coach(models.Model):
@@ -41,6 +43,8 @@ class Coach(models.Model):
 
 
 class Team(models.Model):
+    # TODO: Add teams wins and losses to model ?
+
     full_name = models.CharField(
         verbose_name='Name',
         max_length=64,
@@ -87,16 +91,6 @@ class Team(models.Model):
         return Player.objects.filter(team=self).count()
     count_players.short_description = 'Number of players'
 
-    def team_players(self):
-        """Returns the list of players in the team"""
-        from Players.models import Player
-
-        team_players = list()
-        for player in Player.objects.filter(team=self):
-            team_players.append(player)
-
-        return team_players
-
     def games_played(self):
         """Returns the number of games the team played"""
         from Games.models import Game
@@ -104,20 +98,32 @@ class Team(models.Model):
         return Game.objects.team(self).happened().count()
 
     def team_average_leader(self, stat):
-        # TODO: Sort on base level (.extra)
-        # TODO: Multiple players can have the same average
-        # https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.query.QuerySet.extra
         """Returns the player (and value) with best average in given statistic"""
         from Players.models import Player
 
-        top_player = Player.objects.filter(team=self)[0]
-        top_value = top_player.cat_average(stat)
+        players_avg_list = PlayerBoxscore.objects.team(
+            self
+        ).exclude(
+            min=0
+        ).values(
+            'player_id'
+        ).annotate(
+            stat_avg=Avg(stat)
+        ).order_by(
+            '-stat_avg'
+        )
 
-        for player in Player.objects.filter(team=self):
-            value = player.cat_average(stat)
-            if value > top_value:
-                top_player = player
-                top_value = value
+        top_value = '{0:.1f}'.format(players_avg_list[0]['stat_avg'])
+
+        # Check if multiple players have the same average
+        n = 1
+        while players_avg_list[n-1] == players_avg_list[n]:
+            n += 1
+
+        if n == 1:
+            top_player = Player.objects.get(id=players_avg_list[0]['player_id'])
+        else:
+            top_player = n
 
         return top_player, top_value
 
@@ -162,6 +168,13 @@ class Team(models.Model):
             return '{wins} - {loses}'.format(wins=wins, loses=loses)
         else:
             return wins if t == 'wins' else loses
+
+    def percentage(self):
+        """Returns team winning percentage"""
+        try:
+            return float('{0:.3f}'.format(self.wins_loses('wins') / self.games_played()))
+        except ZeroDivisionError:
+            return 0.0
 
     def games_back(self, best_team):
         """Returns number of games back to given team"""

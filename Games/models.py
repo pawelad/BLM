@@ -304,6 +304,8 @@ class TeamBoxscore(models.Model):
             else:
                 self.game.winner = self.game.away_team
 
+            self.game.save()
+
         super(TeamBoxscore, self).save(*args, **kwargs)
 
 

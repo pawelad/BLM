@@ -4,116 +4,110 @@
 
 
 {% block page_content %}
-
-<div class="container">
-    <div class="bs-docs-section">
-        <div class="row page-header">
-            <div class="col-lg-12">
-                <div class="panel with-nav-tabs panel-primary">
-                    <div class="panel-heading main">
-                        <ul class="nav nav-tabs main">
-                            <li class="active"><a href="#tabProfile" data-toggle="tab">Profile</a></li>
-                            <li><a href="#tabStats" data-toggle="tab">Stats</a></li>
-                        </ul>
-                    </div>
-                    <div class="panel-body">
-                        <div class="tab-content">
-                            {# First tab #}
-                            <div class="tab-pane fade in active" id="tabProfile">
-                                <div class="col-lg-12">
-                                    {# Player data #}
-                                    <div class="col-lg-8">
-                                        <h1>
-                                            &#35;{{ player.number }} | {{ player.full_name }}
-                                        </h1>
-                                        <hr>
-                                        <table class="table table-user-information">
-                                            <tbody>
-                                            <tr>
-                                                <td>Team:</td>
-                                                <td><a href="{{ player.team.get_absolute_url }}">
-                                                    {{ player.team.full_name }}
-                                                </a></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Position:</td>
-                                                <td>{{ player.position }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Date of Birth:</td>
-                                                <td>{{ player.birth_date }} (age {{ player.age }})</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Height:</td>
-                                                <td>{{ player.height }} cm</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Weight:</td>
-                                                <td>{{ player.weight }} kg</td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {# Player photo #}
-                                    <div class="col-lg-4">
-                                        <h1>
+    <div class="container">
+        <div class="col-lg-12">
+            <div class="panel with-nav-tabs panel-primary">
+                <div class="panel-heading main">
+                    <ul class="nav nav-tabs main">
+                        <li class="active"><a href="#tabProfile" data-toggle="tab">Profile</a></li>
+                        <li><a href="#tabStats" data-toggle="tab">Stats</a></li>
+                    </ul>
+                </div>
+                <div class="panel-body">
+                    <div class="tab-content">
+                        {# First tab #}
+                        <div class="tab-pane fade in active" id="tabProfile">
+                            <div class="col-lg-12">
+                                {# Player data #}
+                                <div class="col-lg-8">
+                                    <h1>
+                                        &#35;{{ player.number }} | {{ player.full_name }}
+                                    </h1>
+                                    <hr>
+                                    <table class="table table-user-information">
+                                        <tbody>
+                                        <tr>
+                                            <td>Team:</td>
+                                            <td><a href="{{ player.team.get_absolute_url }}">
+                                                {{ player.team.full_name }}
+                                            </a></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Position:</td>
+                                            <td>{{ player.position }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Date of Birth:</td>
+                                            <td>{{ player.birth_date }} (age {{ player.age }})</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Height:</td>
+                                            <td>{{ player.height }} cm</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Weight:</td>
+                                            <td>{{ player.weight }} kg</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {# Player photo #}
+                                <div class="col-lg-4">
+                                    <h1>
                                             <span class="pull-right label label-default">
                                             <img title="{{ player.full_name }} image"
                                                  class="img-rounded img-responsive"
                                                  width="250px"
                                                  src="{{ MEDIA_URL }}{{ player.image }}">
                                             </span>
-                                        </h1>
-                                    </div>
+                                    </h1>
                                 </div>
                             </div>
-                            {# Second tab #}
-                            <div class="tab-pane fade" id="tabStats">
-                                <table class="table table-striped table-hover table-bordered table-condensed">
-                                    <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Opp</th>
-                                        <th>Score</th>
-                                        {% for field in boxscore_fields %}
-                                            <th>{{ field }}</th>
-                                        {% endfor %}
-                                    </tr>
-                                    </thead>
-                                    <tfoot>
-                                    <tr>
-                                        <td colspan="3">Average ({{ player.number_of_games }} games):</td>
-                                        {% for value in average %}
-                                            <td>{{ value }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    <tr>
-                                        <td colspan="3">Total:</td>
-                                        {% for value in total %}
-                                            <td>{{ value }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    </tfoot>
-                                    <tbody>
-                                    {% for game, player_box in season_stats.items %}
-                                        <tr>
-                                            <td>{{ game.date|date:"d N" }}</td>
-                                            <td>{{ game|opp:player.team|safe }}</td>
-                                            <td>{{ game|score:player.team|safe }}</td>
-                                            {% for item in player_box %}
-                                                <td>{{ item }}</td>
-                                            {% endfor %}
-                                        </tr>
+                        </div>
+                        {# Second tab #}
+                        <div class="tab-pane fade" id="tabStats">
+                            <table class="table table-striped table-hover table-bordered table-condensed">
+                                <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Opp</th>
+                                    <th>Score</th>
+                                    {% for field in boxscore_fields %}
+                                        <th>{{ field }}</th>
                                     {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                </tr>
+                                </thead>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="3">Average ({{ player.number_of_games }} games):</td>
+                                    {% for value in average %}
+                                        <td>{{ value }}</td>
+                                    {% endfor %}
+                                </tr>
+                                <tr>
+                                    <td colspan="3">Total:</td>
+                                    {% for value in total %}
+                                        <td>{{ value }}</td>
+                                    {% endfor %}
+                                </tr>
+                                </tfoot>
+                                <tbody>
+                                {% for game, player_box in season_stats.items %}
+                                    <tr>
+                                        <td>{{ game.date|date:"d N" }}</td>
+                                        <td>{{ game|opp:player.team|safe }}</td>
+                                        <td>{{ game|score:player.team|safe }}</td>
+                                        {% for item in player_box %}
+                                            <td>{{ item }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
 {% endblock %}

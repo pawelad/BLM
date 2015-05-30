@@ -7,7 +7,10 @@ from Teams.models import Team
 def team_page(request, team_name):
     team = get_object_or_404(Team, full_name=team_name.replace("_", " ").title)
 
-    team_players = team.team_players()
+    team_players = team.player.all()
+    team_record = '{W} - {L} ({perc})'.format(W=team.wins_loses('wins'),
+                                              L=team.wins_loses('loses'),
+                                              perc=team.percentage())
 
     avg_leaders_fields = [
         ['PPG', 'RPG', 'APG', 'SPG', 'BPG'],
@@ -38,5 +41,5 @@ def team_page(request, team_name):
 
     return render(request, 'Teams/team_page.html',
                   {'team': team, 'team_players': team_players, 'team_leaders': team_leaders,
-                   'previous_games': previous_games, 'next_games': next_games,
+                   'team_record': team_record, 'previous_games': previous_games, 'next_games': next_games,
                    'stat_fields': stat_fields[0], 'players_stats': players_stats})
