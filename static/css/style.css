@@ -4,7 +4,7 @@ a {
 }
 
 .panel-body a:hover {
-  color: #2c3e50 !important;
+  color: #18bc9c !important;
 }
 
 .label {
@@ -33,7 +33,6 @@ a {
 .table-user-information > tbody > tr:first-child {
     border-top: 0;
 }
-
 
 .table-user-information > tbody > tr > td {
     border-top: 0;
@@ -131,4 +130,19 @@ a {
 .with-nav-tabs.panel-primary .nav-tabs > li.dropdown .dropdown-menu > .active > a:hover,
 .with-nav-tabs.panel-primary .nav-tabs > li.dropdown .dropdown-menu > .active > a:focus {
     background-color: #4a9fe9;
+}
+
+/*** http://bootsnipp.com/snippets/featured/social-dashboard ***/
+.leader-value {
+    font-size: 20px;
+    text-align: right;
+    position: absolute;
+    top: 7px;
+    right: 20px;
+    outline: none;
+}
+
+.leader-image {
+    right: 25px;
+    outline: none;
 }

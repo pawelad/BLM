@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'Teams',
     'Games',
     'Standings',
+    'Leaders',
 
     'debug_toolbar',
 )

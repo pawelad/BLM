@@ -145,41 +145,40 @@ class Team(models.Model):
 
         return games_list
 
-    def wins_loses(self, t, place='all'):
-        """Returns the number of Team wins/loses (or record), with place of the game as second parameter"""
+    def record(self, place='all', display=False):
+        """Returns the number of Team wins, loses and the percentage in given place (home, away or all)"""
         from Games.models import Game
 
-        if t not in ['wins', 'loses', 'record']:
-            raise Exception("First parameter must be 'wins', 'loses' or 'record'")
+        games = Game.objects.happened()
 
         if place == 'all':
-            games_list = Game.objects.happened().team(self)
+            wins = games.team(self).filter(winner=self).count()
+            loses = games.team(self).exclude(winner=self).count()
         elif place == 'home':
-            games_list = Game.objects.happened().filter(home_team=self)
+            wins = games.filter(home_team=self).filter(winner=self).count()
+            loses = games.filter(home_team=self).exclude(winner=self).count()
         elif place == 'away':
-            games_list = Game.objects.happened().filter(away_team=self)
+            wins = games.filter(away_team=self).filter(winner=self).count()
+            loses = games.filter(away_team=self).exclude(winner=self).count()
         else:
-            raise Exception("Second parameter must be 'home' or 'away'")
+            raise Exception("Place must be equal to 'home' or 'away'")
 
-        wins = games_list.filter(winner=self).count()
-        loses = games_list.exclude(winner=self).count()
-
-        if t == 'record':
-            return '{wins} - {loses}'.format(wins=wins, loses=loses)
-        else:
-            return wins if t == 'wins' else loses
-
-    def percentage(self):
-        """Returns team winning percentage"""
         try:
-            return float('{0:.3f}'.format(self.wins_loses('wins') / self.games_played()))
+            percentage = float('{0:.3f}'.format(wins / self.games_played()))
         except ZeroDivisionError:
             return 0.0
 
+        if display:
+            return {'default': '{w} - {l}'.format(w=wins, l=loses),
+                    'percentage': '{w} - {l} ({perc})'.format(w=wins, l=loses, perc=percentage)}
+        else:
+            return {'wins': wins, 'loses': loses, 'percentage': percentage}
+
     def games_back(self, best_team):
         """Returns number of games back to given team"""
-        return ((best_team.wins_loses('wins') - self.wins_loses('wins')) +
-                (self.wins_loses('loses') - best_team.wins_loses('loses'))) / 2
+        record = self.record()
+        best_record = best_team.record()
+        return ((best_record['wins'] - record['wins']) + (record['loses'] - best_record['loses'])) / 2
 
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse

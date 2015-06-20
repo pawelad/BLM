@@ -42,7 +42,6 @@ class Player(models.Model):
 
     number = models.PositiveSmallIntegerField(
         verbose_name='Number',
-
     )
 
     birth_date = models.DateField(

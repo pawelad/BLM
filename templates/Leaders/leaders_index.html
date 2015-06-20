@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block page_content %}
+    <div class="container">
+        <div class="col-lg-12">
+            <div class="row">
+                {% for name, stat_leaders in all_stats_leaders.items %}
+                    <div class="col-md-4">
+                        <div class="list-group">
+                            <p class="list-group-item active">{{ name }}</p>
+                            {% for player in stat_leaders %}
+                                <a href="{{ player.player.get_absolute_url }}" class="list-group-item">
+                                {% ifequal forloop.counter 1 %}
+                                    <span class="pull-right leader-image">
+                                        <img title="{{ player.full_name }} image"
+                                             class="img-rounded img-responsive"
+                                             width="35px"
+                                             src="{{ MEDIA_URL }}{{ player.player.image }}">
+                                    </span>
+                                    <h4 class="list-group-item-heading">
+                                        {{ player.value }}
+                                    </h4>
+
+                                    <p class="list-group-item-text">
+                                        {{ player.player.full_name }}
+                                    </p>
+                                {% else %}
+                                    <h3 class="pull-right">
+                                        <span class="leader-value">
+                                            {{ player.value }}
+                                        </span>
+                                    </h3>
+                                    <h4 class="list-group-item-heading">
+                                        {{ player.player.full_name }}
+                                    </h4>
+                                {% endifequal %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {# Three list in one row #}
+                    {% if forloop.counter|divisibleby:3 %}
+                        </div>
+                        <div class="row">
+                    {% endif %}
+                {% endfor %}
+                </div>
+        </div>
+    </div>
+{% endblock %}

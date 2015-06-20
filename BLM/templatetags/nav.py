@@ -12,7 +12,8 @@ def nav(context):
              {'name': 'Teams', 'url': reverse('team:index')},
              {'name': 'Players', 'url': reverse('player:index')},
              {'name': 'Games', 'url': reverse('game:index')},
-             {'name': 'Standings', 'url': reverse('standings:index')}]
+             {'name': 'Standings', 'url': reverse('standings:index')},
+             {'name': 'Leaders', 'url': reverse('leaders:index')}]
 
     all_teams = list()
     for team in Team.objects.all():
