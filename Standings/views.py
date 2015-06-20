@@ -10,7 +10,7 @@ def standings_index(request):
 
     percentage_list = dict()
     for team in teams_list:
-        percentage_list[team] = team.percentage()
+        percentage_list[team] = team.record()['percentage']
 
     # Sort team winning percentages
     percentage_list = OrderedDict(sorted(percentage_list.items(), key=itemgetter(1), reverse=True))
@@ -18,10 +18,11 @@ def standings_index(request):
 
     standings_list = OrderedDict()
     for team in percentage_list.keys():
+        record = team.record()
         standings_list[team] = {
-            'name': team.full_name, 'wins': team.wins_loses('wins'), 'loses': team.wins_loses('loses'),
+            'name': team.full_name, 'wins': record['wins'], 'loses': record['loses'],
             'percentage': percentage_list[team], 'gb': team.games_back(best_team),
-            'home': team.wins_loses('record', 'home'), 'away': team.wins_loses('record', 'away')
+            'home': team.record('home', display=True)['default'], 'away': team.record('away', display=True)['default']
         }
 
     return render(request, 'Standings/standings_index.html',
