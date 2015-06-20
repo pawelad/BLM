@@ -1,9 +1,9 @@
+from collections import OrderedDict
+
 from django.db import models
 from django.db.models import Q, Sum
 from django.utils.functional import cached_property
 from django.core.exceptions import ValidationError
-from datetime import date
-from collections import OrderedDict
 
 
 class GameQuerySet(models.QuerySet):
