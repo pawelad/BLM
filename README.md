@@ -7,7 +7,7 @@ Feel free to ask, use, fork, report bugs, fix them, suggest enhancements and poi
 
 Example data is provided in `fixtures` directory, and required libraries are in `requirements.txt`.
 
-##Instalation
+## Instalation
 ```
 $ git clone https://github.com/pawelad/BLM.git
 $ cd BLM
@@ -17,18 +17,18 @@ $ python manage.py loaddata fixtures/*
 $ python manage.py runserver
 ```
 
-##To do
+## To do
 - [ ] main page
 - [ ] league settings
 - [ ] team games page
 - [ ] referees
 
-##Used software
+## Used software
 - [Django](https://www.djangoproject.com/)
 - [Bootstrap Flatly theme](https://bootswatch.com/flatly/)
 - [jQuery](https://jquery.com/)
 - Python libraries in `requirements.txt`
 
-##Authors
+## Authors
 - [Paweł Adamczak](https://github.com/pawelad)
 - [Wojtek Adaszyński](https://github.com/wojciechAdaszynski)
